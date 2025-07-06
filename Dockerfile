@@ -153,3 +153,26 @@ COPY --from=build /app/webapp/target/webapp.war /opt/tomcat/webapps/webapp.war
 # Start Tomcat
 CMD ["/opt/tomcat/bin/catalina.sh", "run"]
 
+
+
+#######
+########this is cleaner version of this process
+# --- Build Stage ---
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+
+WORKDIR /app
+COPY . .
+RUN mvn clean package
+
+# --- Run Stage ---
+FROM tomcat:9-jdk17
+
+# Optional: clean default apps
+RUN rm -rf /usr/local/tomcat/webapps/*
+
+# Deploy your WAR as ROOT.war to load at "/"
+COPY --from=build /app/webapp/target/webapp.war /usr/local/tomcat/webapps/ROOT.war
+
+EXPOSE 8080
+CMD ["catalina.sh", "run"]
+################
